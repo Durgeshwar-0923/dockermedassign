@@ -2,41 +2,49 @@ pipeline {
     agent any
 
     environment {
-        VENV = 'venv'
+        DOCKER_IMAGE = "your-dockerhub-username/my-python-app:latest"
     }
 
     stages {
-        stage ("Install") {
+        stage('Checkout Code') {
             steps {
-                sh '''
-                    python3 -m venv $VENV
-                    . $VENV/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
-                '''
+                git branch: 'main', url: 'https://github.com/your-user/your-repo.git'
             }
         }
-        stage ("Linting") {
+
+        stage('Build Docker Image') {
             steps {
-                script {
-                    echo "This is my Linting Step"
-                }
+                sh 'docker build -t $DOCKER_IMAGE .'
             }
         }
-        stage ("Install Packages") {
+
+        stage('Login to Docker Hub') {
             steps {
-                script {
-                    echo "This is Install PAkcges Step"
-                }
-            }
-        }
-        stage ("Run Application") {
-            steps {
-                script {
-                    echo "This is my Run applcaition Step"
+                withDockerRegistry([credentialsId: 'docker-hub-cred', url: 'https://index.docker.io/v1/']) {
+                    sh 'docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}'
                 }
             }
         }
 
+        stage('Push Image to Docker Hub') {
+            steps {
+                sh 'docker push $DOCKER_IMAGE'
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                sh 'docker system prune -f'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Docker image successfully pushed to Docker Hub!"
+        }
+        failure {
+            echo "Pipeline failed! Check logs for errors."
+        }
     }
 }
