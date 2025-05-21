@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git 'https://github.com/Durgeshwar-0923/dockermedassign.git'
+                git branch: 'main', url: 'https://github.com/Durgeshwar-0923/dockermedassign.git'
             }
         }
 
