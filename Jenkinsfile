@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "durgesh0923/my-python-app:latest"
+        DOCKER_IMAGE = "durgesh0923/minfyassign:latest"
     }
 
     stages {
