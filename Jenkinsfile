@@ -8,31 +8,27 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/Durgeshwar-0923/dockermedassign'
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[url: 'https://github.com/Durgeshwar-0923/dockermedassign']]])
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh '''
-                    docker build -t $DOCKER_IMAGE .
-                '''
+                sh "docker build -t ${env.DOCKER_IMAGE} ."
             }
         }
 
         stage('Login to Docker Hub') {
             steps {
                 withDockerRegistry([credentialsId: 'docker-hub-cred', url: 'https://index.docker.io/v1/']) {
-                    sh 'docker login'
+                    echo "Successfully authenticated with Docker Hub."
                 }
             }
         }
 
         stage('Push Image to Docker Hub') {
             steps {
-                sh '''
-                    docker push $DOCKER_IMAGE
-                '''
+                sh "docker push ${env.DOCKER_IMAGE}"
             }
         }
 
