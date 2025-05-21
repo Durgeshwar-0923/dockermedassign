@@ -1,8 +1,12 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = 'durgesh0923/myapp:latest'
+    }
+
     stages {
-        stage('Checkout Code') {
+        stage('Clone Repository') {
             steps {
                 git 'https://github.com/Durgeshwar-0923/dockermedassign.git'
             }
@@ -10,28 +14,23 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t durgesh0923/minfyassign:latest .'
+                sh 'docker build -t myapp .'
             }
         }
 
-        stage('Login to Docker Hub') {
+        stage('Push to Docker Hub') {
             steps {
-                withDockerRegistry([credentialsId: 'docker-hub-cred', url: 'https://index.docker.io/v1/']) {
-                    echo 'Successfully authenticated with Docker Hub.'
+                withDockerRegistry([credentialsId: 'docker-hub-credentials', url: 'https://index.docker.io/v1/']) {
+                    sh "docker tag myapp $DOCKER_IMAGE"
+                    sh "docker push $DOCKER_IMAGE"
                 }
             }
         }
 
-        stage('Push Image to Docker Hub') {
+        stage('Deploy Container') {
             steps {
-                sh 'docker push durgesh0923/minfyassign:latest'
+                sh "docker run -d -p 8081:8081 $DOCKER_IMAGE"
             }
-        }
-    }
-
-    post {
-        failure {
-            echo 'Pipeline failed! Check logs for errors.'
         }
     }
 }
